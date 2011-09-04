@@ -960,22 +960,13 @@ sub setup_authkeys
         # apparently some pubkeys don't end in a newline...
         my $pubkey_content;
         {
-            local $/ = undef;
             local @ARGV = ($pubkey);
-            $pubkey_content = <>;
+            for $pubkey_content (<>) {
+                chomp($pubkey_content);
+                print $newkeys_fh "command=\"$AUTH_COMMAND $user\",$AUTH_OPTIONS ";
+                print $newkeys_fh "$pubkey_content\n";
+            }
         }
-        $pubkey_content =~ s/\s*$/\n/;
-        # don't trust files with multiple lines (i.e., something after a newline)
-        if ($pubkey_content =~ /\n./)
-        {
-            warn "WARNING: a pubkey file can only have one line (key); ignoring $pubkey\n" .
-                 "         If you want to add multiple public keys for a single user, use\n" .
-                 "         \"user\@host.pub\" file names.  See the \"one user, many keys\"\n" .
-                 "         section in doc/3-faq-tips-etc.mkd for details.\n";
-            next;
-        }
-        print $newkeys_fh "command=\"$AUTH_COMMAND $user\",$AUTH_OPTIONS ";
-        print $newkeys_fh $pubkey_content;
     }
 
     # lint check 2 -- print less noisily
